@@ -1,42 +1,44 @@
-export default async function handler(req, res) {
+export default function handler(req, res) {
   const symbol = (req.query.symbol || "BTCUSDT").toUpperCase();
 
-  const dataMock = {
-    "1s": "🔼 Naik kecil (1 detik)",
-    "1m": "🔼 Naik stabil",
-    "10m": "🔽 Turun ringan",
-    "15m": "⏸️ Sideways kecil",
-    "30m": "🔽 Koreksi ringan",
-    "1h": "🔽 Turun moderat",
-    "4h": "🔽 Turun tajam",
-    "1d": "🔽 Dominan turun",
-    "1w": "⏸️ Masih range besar"
+  const harga = {
+    "1m": 58200,
+    "10m": 58080,
+    "15m": 58020,
+    "1h": 57890,
+    "4h": 57600,
+    "1d": 57500
   };
 
-  const hasil = `
-📊 Analisa ${symbol} oleh AI (Multi Timeframe)
+  const arah = {
+    "1m": "⬆️",
+    "10m": "⬇️",
+    "15m": "⬇️",
+    "1h": "⬇️",
+    "4h": "⬇️",
+    "1d": "⬆️"
+  };
 
-• 1 detik  : ${dataMock["1s"]}
-• 1 menit  : ${dataMock["1m"]}
-• 10 menit : ${dataMock["10m"]}
-• 15 menit : ${dataMock["15m"]}
-• 30 menit : ${dataMock["30m"]}
-• 1 jam    : ${dataMock["1h"]}
-• 4 jam    : ${dataMock["4h"]}
-• 1 hari   : ${dataMock["1d"]}
-• 1 minggu : ${dataMock["1w"]}
+  const analisa = `📊 Analisa ${symbol} (Versi Dummy - Simulasi)
 
-📈 Kesimpulan Besar:
-Tren dominan sedang **turun bertahap** dari 10m–1d.
-Waspadai kemungkinan pantulan kecil namun tetap rawan breakdown.
+• 1m  : $${harga["1m"]} ${arah["1m"]}
+• 10m : $${harga["10m"]} ${arah["10m"]}
+• 15m : $${harga["15m"]} ${arah["15m"]}
+• 1h  : $${harga["1h"]} ${arah["1h"]}
+• 4h  : $${harga["4h"]} ${arah["4h"]}
+• 1d  : $${harga["1d"]} ${arah["1d"]}
 
-💡 Saran AI:
-• Hindari posisi Long.
-• Amati volume di TF 4h+.
-• Tunggu sinyal konfirmasi naik sebelum masuk posisi.
+📛 Waspada:
+Harga mencoba naik (TF kecil), tapi gagal tembus $58260.
+📉 TF besar masih dominan turun.
+⚠️ Breakout palsu terlihat — volume lemah & candle tak dikonfirmasi.
 
-#JufZoneAI
+🎯 BUY jika mantul kuat dari $57600 disertai volume tinggi.
+🛑 HINDARI posisi jika harga berputar antara $57890–$58260 (jebakan area).
+
+💬 Rekomendasi AI:
+Tunda entry besar. Tunggu breakout valid di atas $58260 atau breakdown di bawah $57600 disertai volume besar. Jangan terburu masuk saat arah tidak sinkron antar timeframe.
 `;
 
-  return res.status(200).send(hasil);
+  return res.status(200).send(analisa);
 }
