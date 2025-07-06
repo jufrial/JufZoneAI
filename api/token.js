@@ -6,7 +6,6 @@ export default async function handler(req, res) {
     return res.status(500).send("❌ OPENAI_API_KEY belum diatur.");
   }
 
-  // Pemetaan ke CoinGecko ID
   const symbolToId = {
     "BTCUSDT": "bitcoin",
     "ETHUSDT": "ethereum",
@@ -14,30 +13,30 @@ export default async function handler(req, res) {
   };
 
   const coinId = symbolToId[symbol];
-
   if (!coinId) {
     return res.status(400).send(`❌ Token ${symbol} belum didukung.`);
   }
 
   try {
-    const url = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=1&interval=hourly`;
+    const url = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=1`;
     const response = await fetch(url);
     const json = await response.json();
 
-    if (!json?.prices || !Array.isArray(json.prices)) {
-      return res.status(500).send("❌ Gagal mengambil harga CoinGecko.");
+    const prices = json?.prices;
+    if (!Array.isArray(prices) || prices.length < 3) {
+      return res.status(500).send("❌ Gagal mengambil harga dari CoinGecko.");
     }
 
-    const last3 = json.prices.slice(-3).map(([time, price]) => {
+    const last3 = prices.slice(-3).map(([time, price]) => {
       const t = new Date(time).toLocaleTimeString();
       return `Waktu: ${t} - Harga: $${price.toFixed(4)}`;
     }).join("\\n");
 
     const prompt = `Token: ${symbol}
-Harga 3 jam terakhir:
+Harga 3 titik terakhir hari ini:
 ${last3}
 
-Apakah saat ini peluang terbaik Buy, Sell, atau Wait? Berikan analisa teknikal sederhana.`;
+Apa sinyal terbaik saat ini? Buy, sell, atau wait? Jelaskan secara teknikal.`;
 
     const ai = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
