@@ -1,20 +1,49 @@
-export default async function handler(req, res) {
-  const { token } = req.body;
-  const prompt = `Prediksi arah dan peringatan untuk token ${token} dalam 15–60 menit ke depan. Singkat, tajam, dan langsung ke poin.`;
+import fetch from 'node-fetch';
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+export default async function handler(req, res) {
+  const symbol = req.query.symbol || "XRPUSDC";
+
+  const intervals = ["15m", "1h", "1d"];
+  const klines = {};
+
+  for (let interval of intervals) {
+    const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=5`;
+    const response = await fetch(url);
+    const data = await response.json();
+    klines[interval] = data.map(c => ({
+      time: c[0], open: c[1], high: c[2], low: c[3], close: c[4], volume: c[5]
+    }));
+  }
+
+  const summary = intervals.map(interval => {
+    const last = klines[interval].slice(-1)[0];
+    return `${interval} - Open: ${last.open}, Close: ${last.close}, Volume: ${last.volume}`;
+  }).join("\n");
+
+  const prompt = `
+Token: ${symbol}
+Timeframes:
+${summary}
+
+Apa yang harus dilakukan saat ini? Long? Short? Atau menunggu?
+Berikan penjelasan detail untuk semua timeframe.
+`;
+
+  const gptRes = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+      "Authorization": "Bearer " + process.env.OPENAI_API_KEY,
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: "gpt-4",
+      model: "gpt-3.5-turbo",
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 150
+      temperature: 0.7
     })
   });
 
-  const data = await response.json();
-  res.status(200).json({ reply: data.choices[0].message.content });
+  const gptData = await gptRes.json();
+  const answer = gptData.choices?.[0]?.message?.content || "Tidak ada jawaban dari AI.";
+
+  res.status(200).send(answer);
 }
