@@ -1,16 +1,22 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>JufZone AI</title>
-  <link rel="stylesheet" href="/src/style.css" />
+  <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-  <h1>📊 JufZone AI</h1>
-  <button onclick="location.href='ai.html'">🤖 Terminal AI</button>
-  <div id="crypto-output">Memuat data...</div>
-  <script src="/src/main.js"></script>
+  <h1>Fitur Analisis Segera Aktif</h1>
+  <button onclick="openTerminal()">Buka Terminal AI</button>
+  <div id="terminal-output"></div>
+  <script>
+    async function openTerminal() {
+      const res = await fetch('/api/terminal');
+      const data = await res.json();
+      document.getElementById('terminal-output').innerText =
+        "🧠 " + data.message + " (" + data.timestamp + ")";
+    }
+  </script>
 </body>
 </html>
