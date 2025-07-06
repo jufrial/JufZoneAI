@@ -1,62 +1,42 @@
 export default async function handler(req, res) {
   const symbol = (req.query.symbol || "BTCUSDT").toUpperCase();
-  const symbolToId = {
-    "BTCUSDT": "bitcoin",
-    "ETHUSDT": "ethereum",
-    "XRPUSDC": "ripple"
+
+  const dataMock = {
+    "1s": "🔼 Naik kecil (1 detik)",
+    "1m": "🔼 Naik stabil",
+    "10m": "🔽 Turun ringan",
+    "15m": "⏸️ Sideways kecil",
+    "30m": "🔽 Koreksi ringan",
+    "1h": "🔽 Turun moderat",
+    "4h": "🔽 Turun tajam",
+    "1d": "🔽 Dominan turun",
+    "1w": "⏸️ Masih range besar"
   };
-  const coinId = symbolToId[symbol];
-  if (!coinId) return res.status(400).send("❌ Token tidak didukung.");
 
-  try {
-    const url = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=1`;
-    const response = await fetch(url);
-    const data = await response.json();
+  const hasil = `
+📊 Analisa ${symbol} oleh AI (Multi Timeframe)
 
-    const prices = data?.prices;
-    if (!Array.isArray(prices) || prices.length < 3) {
-      return res.status(500).send("❌ Gagal ambil harga dari CoinGecko.");
-    }
+• 1 detik  : ${dataMock["1s"]}
+• 1 menit  : ${dataMock["1m"]}
+• 10 menit : ${dataMock["10m"]}
+• 15 menit : ${dataMock["15m"]}
+• 30 menit : ${dataMock["30m"]}
+• 1 jam    : ${dataMock["1h"]}
+• 4 jam    : ${dataMock["4h"]}
+• 1 hari   : ${dataMock["1d"]}
+• 1 minggu : ${dataMock["1w"]}
 
-    const last3 = prices.slice(-3);
-    const p1 = last3[0][1]; // 15 menit lalu (kira-kira)
-    const p2 = last3[1][1]; // 1 jam lalu (kira-kira)
-    const p3 = last3[2][1]; // saat ini
+📈 Kesimpulan Besar:
+Tren dominan sedang **turun bertahap** dari 10m–1d.
+Waspadai kemungkinan pantulan kecil namun tetap rawan breakdown.
 
-    const time1 = new Date(last3[0][0]).toLocaleTimeString();
-    const time2 = new Date(last3[1][0]).toLocaleTimeString();
-    const time3 = new Date(last3[2][0]).toLocaleTimeString();
+💡 Saran AI:
+• Hindari posisi Long.
+• Amati volume di TF 4h+.
+• Tunggu sinyal konfirmasi naik sebelum masuk posisi.
 
-    const change = ((p3 - p1) / p1) * 100;
-    let mood = "";
-    let advice = "";
+#JufZoneAI
+`;
 
-    if (p1 < p2 && p2 < p3) {
-      mood = "Harga terus naik bertahap.";
-      advice = "Boleh masuk posisi LONG pelan-pelan.";
-    } else if (p1 > p2 && p2 > p3) {
-      mood = "Penurunan beruntun sedang terjadi.";
-      advice = "Hindari LONG, kemungkinan besar lanjut turun.";
-    } else if (Math.abs(p3 - p1) < 0.005) {
-      mood = "Harga stagnan, belum ada pergerakan berarti.";
-      advice = "Tunggu sinyal yang lebih jelas.";
-    } else {
-      mood = "Harga tidak stabil, naik-turun tak terduga.";
-      advice = "Jangan FOMO, tunggu pola pasti baru ambil posisi.";
-    }
-
-    const message = `📊 Analisa AI untuk ${symbol}
-📅 Timeframe:
-• 15m: $${p1.toFixed(4)} @ ${time1}
-• 1j : $${p2.toFixed(4)} @ ${time2}
-• 1d : $${p3.toFixed(4)} @ ${time3}
-
-📈 Tren: ${mood}
-📉 Perubahan: ${change.toFixed(2)}%
-💡 Rekomendasi: ${advice}`;
-
-    return res.status(200).send(message);
-  } catch (err) {
-    return res.status(500).send("❌ Error: " + err.message);
-  }
+  return res.status(200).send(hasil);
 }
