@@ -1,40 +1,38 @@
 export default async function handler(req, res) {
-  const symbol = req.query.symbol || "XRPUSDC";
+  const symbol = (req.query.symbol || "XRPUSDC").toLowerCase();
   const apiKey = process.env.OPENAI_API_KEY;
 
   if (!apiKey) {
     return res.status(500).send("❌ OPENAI_API_KEY belum diatur di Environment Variables.");
   }
 
+  const symbolMap = {
+    xrpcusdc: "ripple",
+    xrp: "ripple",
+    btcusdt: "bitcoin",
+    ethusdt: "ethereum"
+  };
+
+  const tokenId = symbolMap[symbol.replace(/[^a-z]/gi, "")] || "bitcoin";
+
   try {
-    const intervals = ["15m", "1h", "1d"];
-    const klines = {};
+    const resPrice = await fetch(`https://api.coingecko.com/api/v3/coins/${tokenId}/market_chart?vs_currency=usd&days=1&interval=hourly`);
+    const priceData = await resPrice.json();
 
-    for (let interval of intervals) {
-      const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=5`;
-      const response = await fetch(url);
-      const data = await response.json();
-
-      if (!Array.isArray(data)) {
-        return res.status(500).send(`❌ Binance API error (${interval}): ${JSON.stringify(data)}`);
-      }
-
-      klines[interval] = data.map(c => ({
-        time: c[0], open: c[1], high: c[2], low: c[3], close: c[4], volume: c[5]
-      }));
+    if (!priceData?.prices) {
+      return res.status(500).send("❌ Gagal mengambil data dari CoinGecko.");
     }
 
-    const summary = intervals.map(interval => {
-      const last = klines[interval].slice(-1)[0];
-      return `${interval} - Open: ${last.open}, Close: ${last.close}, Volume: ${last.volume}`;
-    }).join("\n");
+    const last3 = priceData.prices.slice(-3).map(p =>
+      `Waktu: ${new Date(p[0]).toLocaleTimeString()}, Harga: $${p[1].toFixed(4)}`
+    ).join("\\n");
 
     const prompt = `
-Token: ${symbol}
-Timeframes:
-${summary}
+Token: ${symbol.toUpperCase()}
+Harga 3 jam terakhir:
+${last3}
 
-Apa strategi terbaik saat ini? Long, short, atau wait? Jelaskan tiap timeframe.
+Apakah saat ini layak untuk buy, sell, atau wait? Jelaskan.
 `;
 
     const gptRes = await fetch("https://api.openai.com/v1/chat/completions", {
