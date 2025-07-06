@@ -19,9 +19,10 @@ export default async function handler(req, res) {
     }
 
     const last3 = prices.slice(-3);
-    const p1 = last3[0][1];
-    const p2 = last3[1][1];
-    const p3 = last3[2][1];
+    const p1 = last3[0][1]; // 15 menit lalu (kira-kira)
+    const p2 = last3[1][1]; // 1 jam lalu (kira-kira)
+    const p3 = last3[2][1]; // saat ini
+
     const time1 = new Date(last3[0][0]).toLocaleTimeString();
     const time2 = new Date(last3[1][0]).toLocaleTimeString();
     const time3 = new Date(last3[2][0]).toLocaleTimeString();
@@ -31,28 +32,28 @@ export default async function handler(req, res) {
     let advice = "";
 
     if (p1 < p2 && p2 < p3) {
-      mood = "Harga terus naik pelan-pelan.";
-      advice = "Boleh beli sekarang, tapi tetap hati-hati ya.";
+      mood = "Harga terus naik bertahap.";
+      advice = "Boleh masuk posisi LONG pelan-pelan.";
     } else if (p1 > p2 && p2 > p3) {
-      mood = "Harga makin turun dari waktu ke waktu.";
-      advice = "Jangan beli dulu, tunggu harga naik lagi biar lebih aman.";
+      mood = "Penurunan beruntun sedang terjadi.";
+      advice = "Hindari LONG, kemungkinan besar lanjut turun.";
     } else if (Math.abs(p3 - p1) < 0.005) {
-      mood = "Harga nggak banyak berubah, masih bolak-balik aja.";
-      advice = "Mending tunggu dulu sampai arahnya lebih jelas.";
+      mood = "Harga stagnan, belum ada pergerakan berarti.";
+      advice = "Tunggu sinyal yang lebih jelas.";
     } else {
-      mood = "Pergerakan harga agak aneh, naik-turun nggak jelas.";
-      advice = "Hati-hati, bisa naik tapi juga bisa turun tiba-tiba.";
+      mood = "Harga tidak stabil, naik-turun tak terduga.";
+      advice = "Jangan FOMO, tunggu pola pasti baru ambil posisi.";
     }
 
-    const message = `📊 Analisa ${symbol} oleh JufZone AI
-Waktu 15m/1h/1d (3 data terakhir):
-${p1.toFixed(4)} @ ${time1}
-${p2.toFixed(4)} @ ${time2}
-${p3.toFixed(4)} @ ${time3}
+    const message = `📊 Analisa AI untuk ${symbol}
+📅 Timeframe:
+• 15m: $${p1.toFixed(4)} @ ${time1}
+• 1j : $${p2.toFixed(4)} @ ${time2}
+• 1d : $${p3.toFixed(4)} @ ${time3}
 
-📈 ${mood}
+📈 Tren: ${mood}
 📉 Perubahan: ${change.toFixed(2)}%
-💡 Saran AI: ${advice}`;
+💡 Rekomendasi: ${advice}`;
 
     return res.status(200).send(message);
   } catch (err) {
