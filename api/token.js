@@ -1,41 +1,45 @@
 export default async function handler(req, res) {
-  const symbol = (req.query.symbol || "XRPUSDC").toLowerCase();
+  const symbol = (req.query.symbol || "XRPUSDC").toUpperCase();
   const apiKey = process.env.OPENAI_API_KEY;
 
   if (!apiKey) {
-    return res.status(500).send("❌ OPENAI_API_KEY belum diatur di Environment Variables.");
+    return res.status(500).send("❌ OPENAI_API_KEY belum diatur.");
   }
 
-  const symbolMap = {
-    xrpcusdc: "ripple",
-    xrp: "ripple",
-    btcusdt: "bitcoin",
-    ethusdt: "ethereum"
+  // Pemetaan ke CoinGecko ID
+  const symbolToId = {
+    "BTCUSDT": "bitcoin",
+    "ETHUSDT": "ethereum",
+    "XRPUSDC": "ripple"
   };
 
-  const tokenId = symbolMap[symbol.replace(/[^a-z]/gi, "")] || "bitcoin";
+  const coinId = symbolToId[symbol];
+
+  if (!coinId) {
+    return res.status(400).send(`❌ Token ${symbol} belum didukung.`);
+  }
 
   try {
-    const resPrice = await fetch(`https://api.coingecko.com/api/v3/coins/${tokenId}/market_chart?vs_currency=usd&days=1&interval=hourly`);
-    const priceData = await resPrice.json();
+    const url = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=1&interval=hourly`;
+    const response = await fetch(url);
+    const json = await response.json();
 
-    if (!priceData?.prices) {
-      return res.status(500).send("❌ Gagal mengambil data dari CoinGecko.");
+    if (!json?.prices || !Array.isArray(json.prices)) {
+      return res.status(500).send("❌ Gagal mengambil harga CoinGecko.");
     }
 
-    const last3 = priceData.prices.slice(-3).map(p =>
-      `Waktu: ${new Date(p[0]).toLocaleTimeString()}, Harga: $${p[1].toFixed(4)}`
-    ).join("\\n");
+    const last3 = json.prices.slice(-3).map(([time, price]) => {
+      const t = new Date(time).toLocaleTimeString();
+      return `Waktu: ${t} - Harga: $${price.toFixed(4)}`;
+    }).join("\\n");
 
-    const prompt = `
-Token: ${symbol.toUpperCase()}
+    const prompt = `Token: ${symbol}
 Harga 3 jam terakhir:
 ${last3}
 
-Apakah saat ini layak untuk buy, sell, atau wait? Jelaskan.
-`;
+Apakah saat ini peluang terbaik Buy, Sell, atau Wait? Berikan analisa teknikal sederhana.`;
 
-    const gptRes = await fetch("https://api.openai.com/v1/chat/completions", {
+    const ai = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": "Bearer " + apiKey,
@@ -48,16 +52,12 @@ Apakah saat ini layak untuk buy, sell, atau wait? Jelaskan.
       })
     });
 
-    const gptData = await gptRes.json();
+    const data = await ai.json();
+    const result = data.choices?.[0]?.message?.content || "⚠️ GPT tidak menjawab.";
 
-    if (gptData.error) {
-      return res.status(500).send("❌ GPT Error: " + gptData.error.message);
-    }
-
-    const answer = gptData.choices?.[0]?.message?.content || "⚠️ GPT tidak memberikan jawaban.";
-    res.status(200).send(answer);
+    return res.status(200).send(result);
 
   } catch (err) {
-    res.status(500).send("❌ Server Error: " + err.message);
+    return res.status(500).send("❌ Error: " + err.message);
   }
 }
