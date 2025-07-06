@@ -1,1 +1,4 @@
 
+hai: Halo juga! Ada yang bisa aku bantu?
+token: Token adalah aset digital yang bisa diperdagangkan.
+siapa kamu: Aku JufAI, asisten pribadi kamu.
