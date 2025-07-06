@@ -1,27 +1,23 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-  <meta charset="UTF-8" />
   <title>JufZone AI</title>
+  <link rel="stylesheet" href="/style.css">
 </head>
-<body style="background:#111;color:#eee;font-family:sans-serif;padding:20px;">
-  <h1>JufZone AI - Token Checker</h1>
-  <input id="token" placeholder="Contoh: XRPUSDC" style="width:100%;padding:10px;margin:10px 0;" />
-  <button onclick="cekToken()">Cek Prediksi</button>
-  <pre id="hasil" style="margin-top:20px;"></pre>
+<body>
+  <h1>JufZone AI - Real-Time Analis</h1>
+  <div>
+    <button onclick="analyze('XRPUSDC')">XRPUSDC</button>
+    <button onclick="analyze('BTCUSDT')">BTCUSDT</button>
+    <button onclick="analyze('ETHUSDT')">ETHUSDT</button>
+  </div>
+  <div id="result" style="margin-top:20px;"></div>
 
   <script>
-    async function cekToken() {
-      const token = document.getElementById('token').value.trim();
-      if (!token) return alert("Isi nama token dulu!");
-      document.getElementById('hasil').innerText = "Memuat prediksi...";
-      const res = await fetch('/api/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token })
-      });
-      const data = await res.json();
-      document.getElementById('hasil').innerText = data.reply;
+    async function analyze(token) {
+      const res = await fetch('/api/token?symbol=' + token);
+      const data = await res.text();
+      document.getElementById('result').innerText = data;
     }
   </script>
 </body>
