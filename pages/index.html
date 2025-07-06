@@ -1,1 +1,28 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>JufZone AI</title>
+</head>
+<body style="background:#111;color:#eee;font-family:sans-serif;padding:20px;">
+  <h1>JufZone AI - Token Checker</h1>
+  <input id="token" placeholder="Contoh: XRPUSDC" style="width:100%;padding:10px;margin:10px 0;" />
+  <button onclick="cekToken()">Cek Prediksi</button>
+  <pre id="hasil" style="margin-top:20px;"></pre>
 
+  <script>
+    async function cekToken() {
+      const token = document.getElementById('token').value.trim();
+      if (!token) return alert("Isi nama token dulu!");
+      document.getElementById('hasil').innerText = "Memuat prediksi...";
+      const res = await fetch('/api/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+      });
+      const data = await res.json();
+      document.getElementById('hasil').innerText = data.reply;
+    }
+  </script>
+</body>
+</html>
