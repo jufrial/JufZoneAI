@@ -1,22 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>JufZone AI</title>
-  <link rel="stylesheet" href="/style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Verifikasi PopCash -->
+  <meta name="ppck-ver" content="d312816133cc1f2b9671386cd369bf5f" />
+  
+  <title>Juf Zone AI</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+    header {
+      background-color: #4c4cff;
+      color: white;
+      padding: 1rem;
+    }
+    main {
+      padding: 2rem;
+    }
+    footer {
+      background-color: #222;
+      color: #aaa;
+      padding: 1rem;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+    }
+  </style>
 </head>
 <body>
-  <h1>Fitur Analisis Segera Aktif</h1>
-  <button onclick="openTerminal()">Buka Terminal AI</button>
-  <div id="terminal-output"></div>
-  <script>
-    async function openTerminal() {
-      const res = await fetch('/api/terminal');
-      const data = await res.json();
-      document.getElementById('terminal-output').innerText =
-        "🧠 " + data.message + " (" + data.timestamp + ")";
-    }
-  </script>
-</body>
-</html>
+  <header>
+    <h1>Selamat Datang di Juf Zone AI</h1>
+  </header>
+  <main>
+    <p>Website ini sedang dala
