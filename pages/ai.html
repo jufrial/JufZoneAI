@@ -1,16 +1,16 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Terminal AI</title>
-  <link rel="stylesheet" href="/src/style.css" />
+  <meta charset="UTF-8">
 </head>
 <body>
-  <h1>🤖 Terminal JufAI</h1>
-  <textarea id="terminal" rows="15" readonly></textarea><br/>
-  <input type="text" id="input" placeholder="Ketik sesuatu..." autofocus/>
-  <script src="/src/ai.js"></script>
+  <h2>Terminal AI Siap</h2>
+  <p>Ketik di bawah ini untuk interaksi</p>
+  <input type="text" id="command" placeholder="Tulis perintah..."/>
+  <button onclick="runCommand()">Kirim</button>
+  <div id="output"></div>
+
+  <script src="/src/terminal.js"></script>
 </body>
 </html>
