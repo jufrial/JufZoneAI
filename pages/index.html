@@ -1,24 +1,16 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>JufZone AI - Real-Time</title>
-  <link rel="stylesheet" href="/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>JufZone AI</title>
+  <link rel="stylesheet" href="/src/style.css" />
 </head>
 <body>
-  <h1>JufZone AI - Real-Time Analis</h1>
-  <div>
-    <button onclick="analyze('XRPUSDC')">XRPUSDC</button>
-    <button onclick="analyze('BTCUSDT')">BTCUSDT</button>
-    <button onclick="analyze('ETHUSDT')">ETHUSDT</button>
-  </div>
-  <div id="result" style="margin-top:20px; white-space: pre-line;"></div>
-
-  <script>
-    async function analyze(token) {
-      const res = await fetch('/api/token?symbol=' + token);
-      const data = await res.text();
-      document.getElementById('result').innerText = data;
-    }
-  </script>
+  <h1>📊 JufZone AI</h1>
+  <button onclick="location.href='ai.html'">🤖 Terminal AI</button>
+  <div id="crypto-output">Memuat data...</div>
+  <script src="/src/main.js"></script>
 </body>
 </html>
