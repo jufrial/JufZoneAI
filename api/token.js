@@ -3,7 +3,7 @@ export default async function handler(req, res) {
   const apiKey = process.env.OPENAI_API_KEY;
 
   if (!apiKey) {
-    return res.status(500).send("❌ API Key belum diatur.");
+    return res.status(500).send("❌ OPENAI_API_KEY belum diatur di Environment Variables.");
   }
 
   try {
@@ -14,6 +14,11 @@ export default async function handler(req, res) {
       const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=5`;
       const response = await fetch(url);
       const data = await response.json();
+
+      if (!Array.isArray(data)) {
+        return res.status(500).send(`❌ Binance API error (${interval}): ${JSON.stringify(data)}`);
+      }
+
       klines[interval] = data.map(c => ({
         time: c[0], open: c[1], high: c[2], low: c[3], close: c[4], volume: c[5]
       }));
@@ -22,7 +27,7 @@ export default async function handler(req, res) {
     const summary = intervals.map(interval => {
       const last = klines[interval].slice(-1)[0];
       return `${interval} - Open: ${last.open}, Close: ${last.close}, Volume: ${last.volume}`;
-    }).join("\\n");
+    }).join("\n");
 
     const prompt = `
 Token: ${symbol}
