@@ -1,17 +1,13 @@
+
 export default async function handler(req, res) {
   const symbol = (req.query.symbol || "BTCUSDT").toUpperCase();
-  const apiKey = process.env.OPENAI_API_KEY;
-
   const symbolToId = {
     "BTCUSDT": "bitcoin",
     "ETHUSDT": "ethereum",
     "XRPUSDC": "ripple"
   };
-
   const coinId = symbolToId[symbol];
   if (!coinId) return res.status(400).send("❌ Token tidak didukung.");
-
-  if (!apiKey) return res.status(500).send("❌ OPENAI_API_KEY tidak diatur.");
 
   try {
     const url = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=1`;
@@ -23,43 +19,33 @@ export default async function handler(req, res) {
       return res.status(500).send("❌ Gagal ambil harga dari CoinGecko.");
     }
 
-    const last3 = prices.slice(-3).map(([t, p], i) => {
-      return `T${i+1}: ${new Date(t).toLocaleTimeString()} - $${p.toFixed(4)}`;
-    }).join("\\n");
+    const last3 = prices.slice(-3);
+    const format = (p) => `$${p[1].toFixed(4)} @ ${new Date(p[0]).toLocaleTimeString()}`;
+    const priceList = last3.map(format).join("\n");
 
-    const prompt = `Token: ${symbol}
-Harga terbaru:
-${last3}
+    const p1 = last3[0][1];
+    const p2 = last3[1][1];
+    const p3 = last3[2][1];
+    const change = ((p3 - p1) / p1) * 100;
+    let trend = "";
+    let reco = "";
 
-Berikan analisis ringkas. Saat ini sebaiknya BUY, SELL, atau WAIT?`;
+    if (p1 < p2 && p2 < p3) { trend = "Naik kuat"; reco = "BUY"; }
+    else if (p1 > p2 && p2 > p3) { trend = "Turun tajam"; reco = "SELL"; }
+    else if (Math.abs(p3 - p1) < 0.005) { trend = "Sideway"; reco = "WAIT"; }
+    else { trend = "Zig-zag"; reco = "HATI-HATI"; }
 
-    const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.5
-      })
-    });
+    const message = `🧠 Dummy AI Result for ${symbol}
+⏱️ Timeframe 15m/1h/1d (last 3 pts)
+${priceList}
 
-    const aiData = await aiRes.json();
+📊 Trend: ${trend}
+📈 Perubahan: ${change.toFixed(2)}%
+✅ Rekomendasi: ${reco}`;
 
-    if (aiData.error) {
-      return res.status(500).send("❌ GPT Error: " + aiData.error.message);
-    }
-
-    const answer = aiData.choices?.[0]?.message?.content;
-    if (!answer) {
-      return res.status(500).send("⚠️ GPT tidak menjawab.");
-    }
-
-    return res.status(200).send("📊 Harga:\n" + last3 + "\n\n🤖 Analisis AI:\n" + answer);
+    return res.status(200).send(message);
 
   } catch (err) {
-    return res.status(500).send("❌ Server Error: " + err.message);
+    return res.status(500).send("❌ Error: " + err.message);
   }
 }
